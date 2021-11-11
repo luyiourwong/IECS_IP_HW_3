@@ -34,27 +34,28 @@ public class HttpResponse {
 	
 		/* First read status line and response headers */
 		try {
-		    String line = /* Fill in */;
+		    String line = fromServer.readLine(); /* Fill in, 從伺服器讀取 */
 		    while (line.length() != 0) {
-			if (!gotStatusLine) {
-			    statusLine = line;
-			    gotStatusLine = true;
-			} else {
-			    headers += line + CRLF;
-			}
-	
-			/* Get length of content as indicated by
-			 * Content-Length header. Unfortunately this is not
-			 * present in every response. Some servers return the
-			 * header "Content-Length", others return
-			 * "Content-length". You need to check for both
-			 * here. */
-			if (line.startsWith(/* Fill in */) ||
-			    line.startsWith(/* Fill in */)) {
-			    String[] tmp = line.split(" ");
-			    length = Integer.parseInt(tmp[1]);
-			}
-			line = fromServer.readLine();
+				if (!gotStatusLine) {
+				    statusLine = line;
+				    gotStatusLine = true;
+				} else {
+				    headers += line + CRLF;
+				}
+		
+				/* Get length of content as indicated by
+				 * Content-Length header. Unfortunately this is not
+				 * present in every response. Some servers return the
+				 * header "Content-Length", others return
+				 * "Content-length". You need to check for both
+				 * here. */
+				/* Fill in, 物件大小的關鍵字, 分小寫大寫 */
+				if (line.startsWith("Content-length:") ||
+				    line.startsWith("Content-Length:")) {
+				    String[] tmp = line.split(" ");
+				    length = Integer.parseInt(tmp[1]);
+				}
+				line = fromServer.readLine();
 		    }
 		} catch (IOException e) {
 		    System.out.println("Error reading headers from server: " + e);
@@ -69,7 +70,7 @@ public class HttpResponse {
 		    /* If we didn't get Content-Length header, just loop until
 		     * the connection is closed. */
 		    if (length == -1) {
-			loop = true;
+		    	loop = true;
 		    }
 		    
 		    /* Read the body in chunks of BUF_SIZE and copy the chunk
@@ -79,19 +80,20 @@ public class HttpResponse {
 		     * closed (when there is no Connection-Length in the
 		     * response. */
 		    while (bytesRead < length || loop) {
-			/* Read it in as binary data */
-			int res = /* Fill in */;
-			if (res == -1) {
-			    break;
-			}
-			/* Copy the bytes into body. Make sure we don't exceed
-			 * the maximum object size. */
-			for (int i = 0; 
-			     i < res && (i + bytesRead) < MAX_OBJECT_SIZE; 
-			     i++) {
-			    /* Fill in */
-			}
-			bytesRead += res;
+				/* Read it in as binary data */
+				int res = fromServer.read(buf, 0, BUF_SIZE); /* Fill in, 讀取buffer */
+				if (res == -1) {
+				    break;
+				}
+				/* Copy the bytes into body. Make sure we don't exceed
+				 * the maximum object size. */
+				for (int i = 0; 
+				     i < res && (i + bytesRead) < MAX_OBJECT_SIZE; 
+				     i++) {
+				    /* Fill in, 填入內容到body */
+					body[i+bytesRead] = buf[i];
+				}
+				bytesRead += res;
 		    }
 	 	} catch (IOException e) {
 	 	    System.out.println("Error reading response body: " + e);

@@ -23,20 +23,39 @@ public class HttpRequest {
     /** Server and port */
     private String host;
     private int port;
+    
+    private boolean ERROR = false;
+    public boolean isERROR() {
+    	return ERROR;
+    }
 
     /** Create HttpRequest by reading it from the client socket */
     public HttpRequest(BufferedReader from) {
+    	System.out.println("[HttpRequest] 開始建立請求");
 		String firstLine = "";
 		try {
 		    firstLine = from.readLine();
+		    System.out.println("[HttpRequest] 讀取到輸入");
 		} catch (IOException e) {
 		    System.out.println("Error reading request line: " + e);
 		}
-	
+		
+		if(firstLine == null || firstLine.isEmpty() || firstLine.isBlank()) {
+			ERROR = true;
+			return;
+		}
+		
+		/* Fill in 
+		 * 
+		 * 內容格式為:
+		 * GET go.microsoft.com:443 HTTP/1.0
+		 * 
+		 * */
+		System.out.println("firstLine is: " + firstLine);
 		String[] tmp = firstLine.split(" ");
-		method = /* Fill in */;
-		URI = /* Fill in */;
-		version = /* Fill in */;
+		method = tmp[0];
+		URI = tmp[1];
+		version = tmp[2];
 	
 		System.out.println("URI is: " + URI);
 	
