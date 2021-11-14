@@ -8,8 +8,6 @@ package com.fcu.m1007888.ip.hw3;
  */
 
 import java.io.*;
-import java.net.*;
-import java.util.*;
 
 public class HttpResponse {
     final static String CRLF = "\r\n";
@@ -27,7 +25,8 @@ public class HttpResponse {
     byte[] body = new byte[MAX_OBJECT_SIZE];
 
     /** Read response from server. */
-    public HttpResponse(DataInputStream fromServer) {
+    @SuppressWarnings("deprecation")
+	public HttpResponse(DataInputStream fromServer) {
 		/* Length of the object */
 		int length = -1;
 		boolean gotStatusLine = false;

@@ -51,38 +51,58 @@ public class ProxyCache {
 		    System.out.println("Error reading request from client: " + e);
 		    return;
 		}
+		
 		/* Send request to server */
-		try {
-		    /* Open socket and write request to socket */
-		    server = new Socket(request.getHost(), request.getPort()); /* Fill in, 建立socket到要求的網址 */
-		    DataOutputStream toServer = new DataOutputStream(server.getOutputStream()); /* Fill in */
-		    toServer.writeBytes(request.toString()); /* Fill in, 寫入要求的內容 */
-		    System.out.println("[handle] 傳送請求至伺服器: " + request.getHost() + ":" + request.getPort());
-		} catch (UnknownHostException e) {
-		    System.out.println("Unknown host: " + request.getHost());
-		    System.out.println(e);
-		    return;
-		} catch (IOException e) {
-		    System.out.println("Error writing request to server: " + e);
-		    return;
+		if(hasCache(request.getURI())) {
+			/*
+			 * 有cache的方法
+			 */
+			System.out.println("[handle] 有cache, 讀取暫存");
+			response = loadCache(request.getURI()).getResp();
+		} else {
+			/*
+			 * 沒有cache的方法
+			 */
+			System.out.println("[handle] 沒有cache, 傳送請求");
+			try {
+			    /* Open socket and write request to socket */
+			    server = new Socket(request.getHost(), request.getPort()); /* Fill in, 建立socket到要求的網址 */
+			    DataOutputStream toServer = new DataOutputStream(server.getOutputStream()); /* Fill in */
+			    toServer.writeBytes(request.toString()); /* Fill in, 寫入要求的內容 */
+			    System.out.println("[handle] 傳送請求至伺服器: " + request.getHost() + ":" + request.getPort());
+			} catch (UnknownHostException e) {
+			    System.out.println("Unknown host: " + request.getHost());
+			    System.out.println(e);
+			    return;
+			} catch (IOException e) {
+			    System.out.println("Error writing request to server: " + e);
+			    return;
+			}
+			try {
+				DataInputStream fromServer = new DataInputStream(server.getInputStream());
+				response = new HttpResponse(fromServer); /* Fill in, 伺服器的回應 */
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		    
 		}
 		/* Read response and forward it to client */
 		try {
-		    DataInputStream fromServer = new DataInputStream(server.getInputStream()); /* Fill in, 伺服器的input */
-		    response = new HttpResponse(fromServer); /* Fill in, 伺服器的回應 */
 		    System.out.println("[handle] 取得伺服器回應:");
 		    System.out.println(response.toString());
+		    /* Write response to client. First headers, then body */
 		    DataOutputStream toClient = new DataOutputStream(client.getOutputStream()); /* Fill in, 客戶端的input */
 		    toClient.writeBytes(response.toString());
             toClient.write(response.body); /* Fill in, 傳送伺服器的回應給客戶端 */
             System.out.println("[handle] 傳送伺服器回應給客戶端");
-		    /* Write response to client. First headers, then body */
-		    client.close();
-		    server.close();
-		    System.out.println("[handle] 關閉連線");
-		    /* Insert object into the cache */
-		    
+            /* Insert object into the cache */
 		    /* Fill in (optional exercise only) */
+		    saveCache(request.getURI(), response);
+		    
+		    client.close();
+		    if(server != null)server.close();
+		    System.out.println("[handle] 關閉連線");
+		    
 		} catch (IOException e) {
 		    System.out.println("Error writing response to client: " + e);
 		}
@@ -105,6 +125,7 @@ public class ProxyCache {
 		
 		System.out.println("[init] 開始初始化");
 		init(myPort);
+		initCache();
 		System.out.println("[init] 初始化完畢, 等待連線");
 	
 		/** Main loop. Listen for incoming connections and spawn a new
@@ -123,5 +144,33 @@ public class ProxyCache {
 				continue;
 		    }
 		}
+    }
+    
+    /*
+     * Cache
+     */
+    
+    public static Map<String, Cache> mapCache;
+    
+    public static void initCache() {
+    	mapCache = new HashMap<String, Cache>();
+    	System.out.println("[cache] 初始化cache");
+    }
+    
+    public static void saveCache(String URI, HttpResponse resp) {
+    	Cache cache = new Cache(URI, resp);
+    	mapCache.put(URI, cache);
+    	System.out.println("[cache] 新增 cache: " + URI);
+    }
+    
+    public static Cache loadCache(String URI) {
+    	if(hasCache(URI)) {
+    		return mapCache.get(URI);
+    	}
+    	return null;
+    }
+    
+    public static boolean hasCache(String URI) {
+    	return mapCache.containsKey(URI);
     }
 }

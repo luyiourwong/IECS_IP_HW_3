@@ -8,8 +8,6 @@ package com.fcu.m1007888.ip.hw3;
  */
 
 import java.io.*;
-import java.net.*;
-import java.util.*;
 
 public class HttpRequest {
     /** Help variables */
@@ -96,6 +94,13 @@ public class HttpRequest {
     /** Return port for server */
     public int getPort() {
     	return port;
+    }
+    
+    /*
+     * ¼È¦s¥Î
+     */
+    public String getURI() {
+    	return URI;
     }
 
     /**
