@@ -9,7 +9,9 @@ package com.fcu.m1007888.ip.hw3;
 
 import java.io.*;
 
-public class HttpResponse {
+public class HttpResponse implements Serializable{
+	
+	private static final long serialVersionUID = 1L;
     final static String CRLF = "\r\n";
     /** How big is the buffer used for reading the object */
     final static int BUF_SIZE = 8192;

@@ -12,6 +12,14 @@ import java.io.*;
 import java.util.*;
 
 public class ProxyCache {
+	
+	/*
+	 * 測試網頁: 是http, 有文字, 有圖片
+	 * 
+	 * http://ms2.iecs.fcu.edu.tw/mailman/listinfo/
+	 * 
+	 */
+	
     /** Port for the proxy */
     private static int port;
     /** Socket for client connections */
@@ -155,11 +163,22 @@ public class ProxyCache {
     public static void initCache() {
     	mapCache = new HashMap<String, Cache>();
     	System.out.println("[cache] 初始化cache");
+    	File folder = new File("cache");
+		if (!folder.exists()) {
+			folder.mkdir();
+			System.out.println("[cache] 建立資料夾");
+		}
+		for (File f : folder.listFiles()) {
+			Cache cache = loadCacheFromFile(f);
+			mapCache.put(cache.getURI(), cache);
+			System.out.println("[cache] 讀取cache: " + cache.getURI());
+		}
     }
     
     public static void saveCache(String URI, HttpResponse resp) {
     	Cache cache = new Cache(URI, resp);
     	mapCache.put(URI, cache);
+    	saveCachetoFile(cache);
     	System.out.println("[cache] 新增 cache: " + URI);
     }
     
@@ -173,4 +192,37 @@ public class ProxyCache {
     public static boolean hasCache(String URI) {
     	return mapCache.containsKey(URI);
     }
+    
+    public static Cache loadCacheFromFile(File file) {
+		try {
+			FileInputStream fi = new FileInputStream(file);
+			ObjectInputStream oi = new ObjectInputStream(fi);
+			
+			Cache cache = (Cache) oi.readObject();
+			
+			oi.close();
+			fi.close();
+			
+			return cache;
+		} catch (ClassNotFoundException | IOException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+    public static void saveCachetoFile(Cache cache) {
+		try {
+			FileOutputStream fo = new FileOutputStream(new File("cache" + File.separator + "" + cache.toString() + ".data"));
+			ObjectOutputStream oo = new ObjectOutputStream(fo);
+			
+			oo.writeObject(cache);
+			
+			oo.close();
+			fo.close();
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }
