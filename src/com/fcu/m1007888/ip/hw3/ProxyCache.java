@@ -51,7 +51,8 @@ public class ProxyCache {
 		    BufferedReader fromClient = new BufferedReader(new InputStreamReader(client.getInputStream())); /* Fill in, 取德client socket 的input*/
 		    request = new HttpRequest(fromClient); /* Fill in, 從client buffer拿 */
 		    if(request.isERROR()) {
-		    	System.out.println("[handle] 讀取請求失敗, 內容為空");
+		    	System.out.println("[handle] 讀取請求失敗, 切斷連線");
+		    	client.close();
 		    	return;
 		    }
 		    System.out.println("[handle] 成功讀取請求");

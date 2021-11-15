@@ -22,6 +22,15 @@ public class HttpRequest {
     private String host;
     private int port;
     
+    /** Maximum size of objects that this proxy can handle. For the
+     * moment set to 100 KB. You can adjust this as needed. */
+    final static int MAX_OBJECT_SIZE = 100000;
+    /* POST */
+    boolean isPOST = false;
+    String ContentType;
+    int ContentLength;
+    byte[] body = new byte[MAX_OBJECT_SIZE];
+    
     private boolean ERROR = false;
     public boolean isERROR() {
     	return ERROR;
@@ -58,32 +67,58 @@ public class HttpRequest {
 		System.out.println("URI is: " + URI);
 	
 		if (!method.equals("GET")) {
-		    System.out.println("Error: Method not GET");
+		    System.out.println("[Request] Warning: Method not GET");
+		}
+		if (method.equals("CONNECT")) {
+		    System.out.println("[Request] Error: Method CONNECT");
+		    ERROR = true;
+			return;
+		}
+		if (method.equals("POST")) {
+		    System.out.println("[Request] POST:");
 		}
 		try {
+			boolean isBody = false;
 		    String line = from.readLine();
 		    while (line.length() != 0) {
-			headers += line + CRLF;
-			/* We need to find host header to know which server to
-			 * contact in case the request URI is not complete. */
-			if (line.startsWith("Host:")) {
-			    tmp = line.split(" ");
-			    if (tmp[1].indexOf(':') > 0) {
-				String[] tmp2 = tmp[1].split(":");
-				host = tmp2[0];
-				port = Integer.parseInt(tmp2[1]);
-			    } else {
-				host = tmp[1];
-				port = HTTP_PORT;
-			    }
-			}
-			line = from.readLine();
+				headers += line + CRLF;
+				/* We need to find host header to know which server to
+				 * contact in case the request URI is not complete. */
+				if (line.startsWith("Host:")) {
+				    tmp = line.split(" ");
+				    if (tmp[1].indexOf(':') > 0) {
+						String[] tmp2 = tmp[1].split(":");
+						host = tmp2[0];
+						port = Integer.parseInt(tmp2[1]);
+					    } else {
+						host = tmp[1];
+						port = HTTP_PORT;
+				    }
+				}
+				/*
+				 * 如果抓到Content-Type:開頭，把接下來的都寫進body
+				 */
+				if (isBody) {
+					
+				}
+				if (line.startsWith("Content-Type:")) {
+					
+				}
+				if (line.startsWith("Content-Length:")) {
+					isBody = true;
+				}
+				
+				/*
+				 * 換行
+				 */
+				line = from.readLine();
 		    }
 		} catch (IOException e) {
 		    System.out.println("Error reading from socket: " + e);
 		    return;
 		}
 		System.out.println("Host to contact is: " + host + " at port " + port);
+		
     }
 
     /** Return host for which this request is intended */
