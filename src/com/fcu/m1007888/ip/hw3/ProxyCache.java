@@ -14,7 +14,7 @@ import java.util.*;
 public class ProxyCache {
 	
 	/*
-	 * 測試網頁: 是http, 有文字, 有圖片
+	 * 測試網頁: 是http, 有文字, 有圖片 test
 	 * 
 	 * http://ms2.iecs.fcu.edu.tw/mailman/listinfo/
 	 * 
