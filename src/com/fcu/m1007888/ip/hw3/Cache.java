@@ -35,6 +35,11 @@ public class Cache implements Serializable{
 		uid = uid.replace(":", "_");
 		uid = uid.replace("/", "_");
 		uid = uid.replace(".", "_");
+		uid = uid.replace("?", "_");
+		uid = uid.replace("*", "_");
+		uid = uid.replace("<", "_");
+		uid = uid.replace(">", "_");
+		uid = uid.replace("|", "_");
 		return uid;
 	}
 	

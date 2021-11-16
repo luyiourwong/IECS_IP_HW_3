@@ -15,8 +15,10 @@ public class ProxyCache {
 	
 	/*
 	 * 測試網頁: 是http, 有文字, 有圖片 test
-	 * 
 	 * http://ms2.iecs.fcu.edu.tw/mailman/listinfo/
+	 * 
+	 * 測試網頁: POST
+	 * http://ms2.iecs.fcu.edu.tw/mailman/listinfo/graduate
 	 * 
 	 */
 	
@@ -62,7 +64,8 @@ public class ProxyCache {
 		}
 		
 		/* Send request to server */
-		if(hasCache(request.getURI())) {
+		boolean hasCache = request.isPOST? false : hasCache(request.getURI());
+		if(hasCache) {
 			/*
 			 * 有cache的方法
 			 */
@@ -89,7 +92,9 @@ public class ProxyCache {
 			}
 			try {
 				DataInputStream fromServer = new DataInputStream(server.getInputStream());
+				System.out.println("[handle] 取得伺服器Input");
 				response = new HttpResponse(fromServer); /* Fill in, 伺服器的回應 */
+				System.out.println("[handle] 轉換成response");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -97,7 +102,7 @@ public class ProxyCache {
 		}
 		/* Read response and forward it to client */
 		try {
-		    System.out.println("[handle] 取得伺服器回應:");
+			System.out.println("[handle] 取得伺服器回應:");
 		    System.out.println(response.toString());
 		    /* Write response to client. First headers, then body */
 		    DataOutputStream toClient = new DataOutputStream(client.getOutputStream()); /* Fill in, 客戶端的input */
@@ -106,7 +111,9 @@ public class ProxyCache {
             System.out.println("[handle] 傳送伺服器回應給客戶端");
             /* Insert object into the cache */
 		    /* Fill in (optional exercise only) */
-		    saveCache(request.getURI(), response);
+            if(!hasCache && !request.isPOST) {
+            	saveCache(request.getURI(), response);
+            }
 		    
 		    client.close();
 		    if(server != null)server.close();

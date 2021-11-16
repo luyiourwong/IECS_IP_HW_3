@@ -30,6 +30,9 @@ public class HttpRequest {
     String ContentType;
     int ContentLength;
     byte[] body = new byte[MAX_OBJECT_SIZE];
+    public boolean isPOST() {
+    	return isPOST;
+    }
     
     private boolean ERROR = false;
     public boolean isERROR() {
@@ -75,6 +78,7 @@ public class HttpRequest {
 			return;
 		}
 		if (method.equals("POST")) {
+			isPOST = true;
 		    System.out.println("[Request] POST:");
 		}
 		try {
@@ -98,16 +102,18 @@ public class HttpRequest {
 				/*
 				 * 如果抓到Content-Type:開頭，把接下來的都寫進body
 				 */
-				if (isBody) {
-					
+				if (isPOST) {
+					System.out.println("" + line);
+					if (isBody) {
+						
+					}
+					if (line.startsWith("Content-Type:")) {
+						
+					}
+					if (line.startsWith("Content-Length:")) {
+						isBody = true;
+					}
 				}
-				if (line.startsWith("Content-Type:")) {
-					
-				}
-				if (line.startsWith("Content-Length:")) {
-					isBody = true;
-				}
-				
 				/*
 				 * 換行
 				 */
@@ -147,7 +153,9 @@ public class HttpRequest {
 		req = method + " " + URI + " " + version + CRLF;
 		req += headers;
 		/* This proxy does not support persistent connections */
-		req += "Connection: close" + CRLF;
+		if(!isPOST) {
+			req += "Connection: close" + CRLF;
+		}
 		req += CRLF;
 		
 		return req;
