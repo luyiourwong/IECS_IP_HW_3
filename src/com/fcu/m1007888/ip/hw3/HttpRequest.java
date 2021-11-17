@@ -69,17 +69,13 @@ public class HttpRequest {
 	
 		System.out.println("URI is: " + URI);
 	
-		if (!method.equals("GET")) {
-		    System.out.println("[Request] Warning: Method not GET");
-		}
-		if (method.equals("CONNECT")) {
-		    System.out.println("[Request] Error: Method CONNECT");
+		if (!method.equals("GET") && !method.equals("POST")) {
+			System.out.println("[Request] Error: Method not GET or POST");
 		    ERROR = true;
 			return;
 		}
 		if (method.equals("POST")) {
 			isPOST = true;
-		    System.out.println("[Request] POST:");
 		}
 		try {
 			boolean isBody = false;
@@ -104,15 +100,6 @@ public class HttpRequest {
 				 */
 				if (isPOST) {
 					System.out.println("" + line);
-					if (isBody) {
-						
-					}
-					if (line.startsWith("Content-Type:")) {
-						
-					}
-					if (line.startsWith("Content-Length:")) {
-						isBody = true;
-					}
 				}
 				/*
 				 * ´«¦æ
@@ -153,9 +140,7 @@ public class HttpRequest {
 		req = method + " " + URI + " " + version + CRLF;
 		req += headers;
 		/* This proxy does not support persistent connections */
-		if(!isPOST) {
-			req += "Connection: close" + CRLF;
-		}
+		req += "Connection: close" + CRLF;
 		req += CRLF;
 		
 		return req;

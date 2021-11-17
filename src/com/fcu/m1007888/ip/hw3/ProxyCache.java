@@ -26,6 +26,8 @@ public class ProxyCache {
     private static int port;
     /** Socket for client connections */
     private static ServerSocket socket;
+    
+    final static String CRLF = "\r\n";
 
     /** Create the ProxyCache object and the socket */
     public static void init(int p) {
@@ -85,6 +87,22 @@ public class ProxyCache {
 			} catch (UnknownHostException e) {
 			    System.out.println("Unknown host: " + request.getHost());
 			    System.out.println(e);
+			    String statusLine = "HTTP/1.1" + " " + "404" + " " + "Not Found";
+				String contentTypeLine = "Content-type: " + "text/html" + CRLF; // 404不會回傳要求的檔案而是顯示錯誤訊息的網頁, 所以這邊type改成網頁
+				String entityBody = "<HTML>" + 
+					"<HEAD><TITLE>Not Found</TITLE></HEAD>" +
+					"<BODY>Not Found</BODY></HTML>";
+				try {
+					DataOutputStream toClient = new DataOutputStream(client.getOutputStream());
+					toClient.writeBytes(statusLine);
+				    toClient.writeBytes(contentTypeLine);
+				    toClient.writeBytes(CRLF);
+				    toClient.writeBytes(entityBody);
+				    toClient.close();
+				    client.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 			    return;
 			} catch (IOException e) {
 			    System.out.println("Error writing request to server: " + e);
