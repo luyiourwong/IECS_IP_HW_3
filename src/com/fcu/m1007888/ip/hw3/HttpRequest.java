@@ -25,15 +25,20 @@ public class HttpRequest {
     /** Maximum size of objects that this proxy can handle. For the
      * moment set to 100 KB. You can adjust this as needed. */
     final static int MAX_OBJECT_SIZE = 100000;
-    /* POST */
+    /* 
+     * POST 用
+     * 
+     */
     boolean isPOST = false;
-    String ContentType;
-    int ContentLength;
-    byte[] body = new byte[MAX_OBJECT_SIZE];
+    int bodyLen = 0;
+    String postBody = "";
     public boolean isPOST() {
     	return isPOST;
     }
     
+    /*
+     * 拒絕連線用
+     */
     private boolean ERROR = false;
     public boolean isERROR() {
     	return ERROR;
@@ -69,16 +74,15 @@ public class HttpRequest {
 	
 		System.out.println("URI is: " + URI);
 	
-		if (!method.equals("GET") && !method.equals("POST")) {
+		if (!method.equals("GET") && !method.equals("POST")) { //除了GET跟POST以外都拒絕
 			System.out.println("[Request] Error: Method not GET or POST");
 		    ERROR = true;
 			return;
 		}
-		if (method.equals("POST")) {
+		if (method.equals("POST")) { //判定是不是POST
 			isPOST = true;
 		}
 		try {
-			boolean isBody = false;
 		    String line = from.readLine();
 		    while (line.length() != 0) {
 				headers += line + CRLF;
@@ -96,9 +100,15 @@ public class HttpRequest {
 				    }
 				}
 				/*
-				 * 如果抓到Content-Type:開頭，把接下來的都寫進body
+				 * POST
+				 * 如果抓到Content-Length:開頭，儲存body的長度
 				 */
-				if (isPOST) {
+				if (line.startsWith("Content-Length") || line.startsWith("Content-length"))
+                {
+                    String[] tmpStr = line.split(" ");
+                    bodyLen = Integer.parseInt(tmpStr[1]);
+                }
+				if (isPOST) { //顯示body，debug用
 					System.out.println("" + line);
 				}
 				/*
@@ -106,6 +116,14 @@ public class HttpRequest {
 				 */
 				line = from.readLine();
 		    }
+		    if (isPOST) {
+		    	/*
+		    	 * 跟response一樣，把內容寫入body
+		    	 */
+				char[] body = new char[bodyLen];
+                from.read(body, 0, bodyLen);
+                postBody = new String(body);
+			}
 		} catch (IOException e) {
 		    System.out.println("Error reading from socket: " + e);
 		    return;
@@ -125,7 +143,7 @@ public class HttpRequest {
     }
     
     /*
-     * 暫存用
+     * 判定暫存用
      */
     public String getURI() {
     	return URI;

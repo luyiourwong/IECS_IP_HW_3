@@ -66,29 +66,39 @@ public class ProxyCache {
 		}
 		
 		/* Send request to server */
-		boolean hasCache = request.isPOST? false : hasCache(request.getURI());
+		boolean hasCache = request.isPOST? false : hasCache(request.getURI()); //是POST的話一樣算沒cache
 		if(hasCache) {
 			/*
 			 * 有cache的方法
 			 */
 			System.out.println("[handle] 有cache, 讀取暫存");
-			response = loadCache(request.getURI()).getResp();
+			response = loadCache(request.getURI()).getResp(); //從暫存檔拿response
 		} else {
 			/*
-			 * 沒有cache的方法
+			 * 沒有cache的方法, POST的方法
 			 */
 			System.out.println("[handle] 沒有cache, 傳送請求");
 			try {
 			    /* Open socket and write request to socket */
 			    server = new Socket(request.getHost(), request.getPort()); /* Fill in, 建立socket到要求的網址 */
 			    DataOutputStream toServer = new DataOutputStream(server.getOutputStream()); /* Fill in */
-			    toServer.writeBytes(request.toString()); /* Fill in, 寫入要求的內容 */
+			    toServer.writeBytes(request.toString()); /* Fill in, 寫入requset的header */
 			    System.out.println("[handle] 傳送請求至伺服器: " + request.getHost() + ":" + request.getPort());
+			    /*
+			     * POST
+			     * 傳送POST的body給server
+			     */
+			    if(request.isPOST) {
+			    	toServer.writeBytes(request.postBody);
+			    }
 			} catch (UnknownHostException e) {
+				/*
+				 * 作業2的404網頁範例, 直接傳給client
+				 */
 			    System.out.println("Unknown host: " + request.getHost());
 			    System.out.println(e);
 			    String statusLine = "HTTP/1.1" + " " + "404" + " " + "Not Found";
-				String contentTypeLine = "Content-type: " + "text/html" + CRLF; // 404不會回傳要求的檔案而是顯示錯誤訊息的網頁, 所以這邊type改成網頁
+				String contentTypeLine = "Content-type: " + "text/html" + CRLF;
 				String entityBody = "<HTML>" + 
 					"<HEAD><TITLE>Not Found</TITLE></HEAD>" +
 					"<BODY>Not Found</BODY></HTML>";
@@ -128,13 +138,15 @@ public class ProxyCache {
             toClient.write(response.body); /* Fill in, 傳送伺服器的回應給客戶端 */
             System.out.println("[handle] 傳送伺服器回應給客戶端");
             /* Insert object into the cache */
-		    /* Fill in (optional exercise only) */
+		    /* Fill in (optional exercise only) 
+		     * 如果沒有暫存而且不是POST就存入暫存
+		     * */
             if(!hasCache && !request.isPOST) {
             	saveCache(request.getURI(), response);
             }
 		    
 		    client.close();
-		    if(server != null)server.close();
+		    if(server != null)server.close(); //有暫存的話不會建立server連線，所以要有例外處理
 		    System.out.println("[handle] 關閉連線");
 		    
 		} catch (IOException e) {
@@ -181,12 +193,13 @@ public class ProxyCache {
     }
     
     /*
-     * Cache
+     * Cache處理
      */
     
     public static Map<String, Cache> mapCache;
     
     public static void initCache() {
+    	//初始化map
     	mapCache = new HashMap<String, Cache>();
     	System.out.println("[cache] 初始化cache");
     	File folder = new File("cache");
@@ -219,6 +232,9 @@ public class ProxyCache {
     	return mapCache.containsKey(URI);
     }
     
+    /*
+     * 儲存和讀取直接用java IO的API
+     */
     public static Cache loadCacheFromFile(File file) {
 		try {
 			FileInputStream fi = new FileInputStream(file);
